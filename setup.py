@@ -9,11 +9,10 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'numpy',
     'scipy',
-    'pytest',
     'pyswarm',
     'matplotlib',
     'fastcluster',
-    'cmaes',
+    'cma',
     #'nlopt',
     ]
 
@@ -42,8 +41,5 @@ setup(
                 'goreport=gobench.report:run_report',
             ],
         },
-        zip_safe=False,
         install_requires=requires,
-        tests_require=requires,
-        test_suite="tests",
       )

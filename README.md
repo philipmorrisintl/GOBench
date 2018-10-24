@@ -34,21 +34,61 @@ In order to run the benchmark only on few functions and few methods (will use
 the cores available on your machine), run the example below:
 
 ```bash
-gobench --nb-runs 5 --methods 'BH,DE,DA' --functions ''
-
+gobench --nb-runs 5 --methods 'DA,BH' --function 'Ackley01,Rosenbrock,Rastrigin'
 ```
 
-* If `nb-runs` is not specified, 100 runs are performed.
-* If no `methods` are specified; BH,DE,DE-R,BF,PSO,PSO-R,TSA,CMA,CMA-R,DA are
-used
-* If no `functions` are specified, all scipy testing functions are used plus
-some of them with higher dimension.
+```bash
+gobench --help
+```
+
+```
+usage: gobench [-h] [--nb-runs NB_RUNS] [--output-folder OUTPUT_FOLDER]
+               [--functions FUNCTIONS] [--methods METHODS]
+
+Running benchmark and processing results
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+  --nb-runs NB_RUNS
+        Number of runs for a given function to test by an algorithm.
+        Each run will have a different seed value so that the initial
+        coordinates will be a different random location.
+        Default value is 100 runs.
+
+  --output-folder OUTPUT_FOLDER
+        Folder where data file for optimization results are stored.
+        Default will create a DATA folder in the working directory.
+        Note: Using default will make the benchmark running for a long time,
+        better to use a cluster infrastructure.
+
+  --functions FUNCTIONS
+
+        Comma separated names of function to be used in the benchmark.
+        By default, all testing functions from SciPy benchmark are used.
+        Note: Using default will make the benchmark running for a long time,
+        better to use a cluster infrastructure.
+
+  --methods METHODS
+        Comma separated names of methods to be benchmarked.
+        'DA' for dual annealing
+        'BH' for basinhopping
+        'DE' for differential evolution
+        'DE-R' for differential evolution restart version
+        'PSO' for particule swarm
+        'PSO-R' for particule swarm restart version
+        'BF' for for brute force
+        'CMA' for Cov. matrix adaptation evolution strategy
+        'CMA-R' for Cov. matrix adaptation evolution strategy restart version
+```
+
 
 ## How to generate the report
 
 ```bash
-goreport --folder RESULTS_FOLDER --out PLOT.png
+goreport
 ```
+
 
 ## Running benchmark on a multicore machine
 

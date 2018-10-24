@@ -21,8 +21,9 @@ from pyswarm import pso
 import cma
 # nlop is a bit tricky to install, disabling by default
 #import nlopt
-import .go_benchmark_functions as gbf
+from . import go_benchmark_functions as gbf
 from .benchunit import BenchUnit
+from .job import Job
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ else:
 if NB_CORES_AVAILABLES < 1:
     NB_CORES_AVAILABLES = 1
 
-MULTI_DIM = True
+MULTI_DIM = False
 DIMENSIONS = [5]
 DIMENSIONS.extend(range(10, 110, 10))
 
@@ -47,18 +48,6 @@ N_DIM_FUNC_SELECTION = [
     'Ackley01', 'Exponential', 'Rastrigin', 'Rosenbrock',
     'Schwefel01',
     ]
-
-METHODS_MAP = {
-    'DA': DAOptimizer,              # Dual annealing
-    'BH': BHOptimizer,              # Basinhopping
-    'DE': DEOptimizer,              # Differential evolution
-    'DE-R': DERestartOptimizer,     # Differential evolution restart
-    'PSO': PSOptimizer,             # Particule swarm
-    'PSO-R': PSOptimizer,           # Particule swarm restart
-    'BF': BFOptimizer,              # Brute force
-    'CMA': CMAOptimizer,            # Cov. matrix adaptation evolution strategy
-    'CMA-R': CMARestartOptimizer,
-}
 
 @contextlib.contextmanager
 def nostdout():
@@ -69,157 +58,6 @@ def nostdout():
     yield
     sys.stdout = save_stdout
     sys.stderr = save_stderr
-
-
-class DummyFile(object):
-    def write(self, x): pass
-    def flush(self): pass
-
-
-class MyBounds(object):
-    def __init__(self, xmax, xmin):
-        self.xmax = np.array(xmax)
-        self.xmin = np.array(xmin)
-
-    def __call__(self, **kwargs):
-        x = kwargs["x_new"]
-        tmax = bool(np.all(x <= self.xmax))
-        tmin = bool(np.all(x >= self.xmin))
-        return tmax and tmin
-
-
-class Benchmarker(object):
-    def __init__(self, nbruns, folder, functions=None, methods=None):
-        self.algorithms = []
-        for k, v in METHODS_MAP:
-            if methods is None or k in methods:
-                self.algorithms.append(v())
-        self.nbruns = nbruns
-        self.folder = folder
-        self.functions = functions
-        bench_members = inspect.getmembers(gbf, inspect.isclass)
-        self.benchmark_functions = [item for item in bench_members if
-                                    issubclass(item[1], gbf.Benchmark)]
-
-    def run(self):
-        jobs = {}
-        index = 0
-        for name, klass in self.benchmark_functions:
-            try:
-                k = klass()
-            except TypeError:
-                k = klass(dimensions=2)
-            if MULTI_DIM:
-                if k.change_dimensionality and name in N_DIM_FUNC_SELECTION:
-                    for dim in DIMENSIONS:
-                        logger.info(
-                            'Appending function: {0} with dim: {1}'.format(
-                                name, dim))
-                        funcs.append((name, klass, dim))
-            #  else:
-            funcs.append((name, klass, None))
-            # Removing Benchmark class that is the mother class
-            funcs = [x for x in funcs if x[0] != 'Benchmark']
-            # Select only the functions that are requested if any
-            if self.functions is not None:
-                funcs = [x for x in funcs if x[0] in self.functions]
-        logger.info('Nb functions to process: {}'.format(len(funcs)))
-
-        if 'USE_CLUSTER' in os.environ:
-            start_idx = int(os.environ['SECTION_NUM']) * int(
-                    os.environ['NB_CORES'])
-            end_idx = start_idx + int(os.environ['NB_CORES']) - 1
-            if end_idx > len(funcs):
-                end_idx = len(funcs) - 1
-            funcs = funcs[start_idx:(end_idx+1)]
-            logger.info('Benchmarking functions: {}'.format(
-                [x[0] for x in funcs]))
-        for name, klass, dim in funcs:
-            jobs[index] = Job(name, klass, dim)
-            index += 1
-        while jobs:
-            running = []
-            to_delete = []
-            for index, job in jobs.items():
-                if job.status == 'FINISHED':
-                    to_delete.append(index)
-                elif job.status == 'RUNNING':
-                    running.append(index)
-            if to_delete:
-                for i in to_delete:
-                    del jobs[i]
-            freecores = NB_CORES_AVAILABLES - len(running)
-            if freecores <= NB_CORES_AVAILABLES:
-                non_running = [jobs[
-                    x] for x in jobs.keys() if x not in running]
-                for i in range(freecores):
-                    if i < len(non_running):
-                        non_running[i].start(self.bench)
-            time.sleep(0.5)
-
-    def bench(self, fname, klass, dim=None):
-        '''Benchmarking function. It executes all runs for a specific
-        function
-        '''
-        self._fname = fname
-        if dim:
-            self._fname = '{0}_{1}'.format(self._fname, dim)
-        for algo in self.algorithms:
-            bu = BenchUnit(self.nbruns, self._fname, algo.name)
-            if os.path.exists(os.path.join(self.folder, bu.filename)):
-                logger.info('File {} already existing, skipping...'.format(
-                    bu.filename))
-                continue
-            else:
-                bu.write(self.folder)
-            for i in range(self.nbruns):
-                np.random.seed(1234 + i)
-                algo.prepare(fname, klass, dim)
-                if i > 0 and algo.name == 'BF':
-                    logger.info('BRUTE FORCE nbrun > 1, ignoring...')
-                    if i == 1:
-                        bu.replicate()
-                    continue
-                try:
-                    algo.optimize()
-                    s = (':-(  Func: {0} - Algo: {1} - RUN: {2} '
-                         '-> FAILED after {3} calls').format(
-                             self._fname, algo.name, i, algo.nbcall)
-                    logger.info(s)
-                    bu.update('success', i, algo.success)
-                    bu.update('ncall', i, algo.fcall_success)
-                    bu.update('fvalue', i, algo.fsuccess)
-                    bu.update('time', i, algo.duration)
-                    bu.update('ncall_max', i, algo.nbcall)
-                except Exception as e:
-                    if type(e) == OptimumFoundException:
-                        s = (':-)  Func: {0} - Algo: {1} - RUN: {2} '
-                             '-> FOUND after {3} calls').format(
-                                self._fname, algo.name, i, algo.nbcall)
-                        logger.info(s)
-                        algo._success = True
-                    elif type(e) == OptimumNotFoundException:
-                        if algo._favor_context:
-                            logger.info('Maximum NB CALL reached. LS...')
-                            algo.lsearch()
-                            self._favor_context = False
-                        s = (':-(  Func: {0} - Algo: {1} - RUN: {2} '
-                             '-> FAILED after {3} calls').format(
-                                self._fname, algo.name, i, algo.nbcall)
-                        logger.info(s)
-                    else:
-                        s = (':-(  Func: {0} - Algo: {1} - RUN: {2} '
-                             '-> EXCEPTION RAISED after {3} '
-                             'calls: {4}').format(
-                                 self._fname, algo.name, i, algo.nbcall)
-                        logger.info(s)
-                        algo._success = False
-                    bu.update('success', i, algo.success)
-                    bu.update('ncall', i, algo.fcall_success)
-                    bu.update('fvalue', i, algo.fsuccess)
-                    bu.update('time', i, algo.duration)
-                    bu.update('ncall_max', i, algo.nbcall)
-            bu.write(self.folder)
 
 
 class OptimumFoundException(Exception):
@@ -335,14 +173,13 @@ class Algo(object):
 class DAOptimizer(Algo):
     def __init__(self):
         Algo.__init__(self)
-        self.name = 'SDA'
+        self.name = 'DA'
 
     def optimize(self):
         Algo.optimize(self)
-        sda(
+        dual_annealing(
             func=self._funcwrapped, x0=None,
-            bounds=list(zip(self._lower, self._upper)), maxiter=MAX_IT,
-            pure_sa=False)
+            bounds=list(zip(self._lower, self._upper)), maxiter=MAX_IT)
 
 class PSOptimizer(Algo):
     def __init__(self):
@@ -556,6 +393,171 @@ class NLOptimizer(Algo):
         self.opt.set_upper_bounds(self._upper)
         with nostdout():
             res = self.opt.optimize(self._xinit)
+
+
+METHODS_MAP = {
+    'DA': DAOptimizer(),              # Dual annealing
+    'BH': BHOptimizer(),              # Basinhopping
+    'DE': DEOptimizer(),              # Differential evolution
+    'DE-R': DERestartOptimizer(),     # Differential evolution restart
+    'PSO': PSOptimizer(),             # Particule swarm
+    'PSO-R': PSOptimizer(),           # Particule swarm restart
+    'BF': BFOptimizer(),              # Brute force
+    'CMA': CMAOptimizer(),            # Cov. matrix adaptation evolution strategy
+    'CMA-R': CMARestartOptimizer(),
+}
+
+
+class DummyFile(object):
+    def write(self, x): pass
+    def flush(self): pass
+
+
+class MyBounds(object):
+    def __init__(self, xmax, xmin):
+        self.xmax = np.array(xmax)
+        self.xmin = np.array(xmin)
+
+    def __call__(self, **kwargs):
+        x = kwargs["x_new"]
+        tmax = bool(np.all(x <= self.xmax))
+        tmin = bool(np.all(x >= self.xmin))
+        return tmax and tmin
+
+
+class Benchmarker(object):
+    def __init__(self, nbruns, folder, functions=None, methods=None):
+        self.algorithms = []
+        for k, v in METHODS_MAP.items():
+            if methods is None or k in methods:
+                self.algorithms.append(v)
+        self.nbruns = nbruns
+        self.folder = folder
+        self.functions = functions
+        bench_members = inspect.getmembers(gbf, inspect.isclass)
+        self.benchmark_functions = [item for item in bench_members if
+                                    issubclass(item[1], gbf.Benchmark)]
+
+    def run(self):
+        jobs = {}
+        index = 0
+        funcs = []
+        for name, klass in self.benchmark_functions:
+            try:
+                k = klass()
+            except TypeError:
+                k = klass(dimensions=2)
+            if MULTI_DIM:
+                if k.change_dimensionality and name in N_DIM_FUNC_SELECTION:
+                    for dim in DIMENSIONS:
+                        logger.info(
+                            'Appending function: {0} with dim: {1}'.format(
+                                name, dim))
+                        funcs.append((name, klass, dim))
+            #  else:
+            funcs.append((name, klass, None))
+            # Removing Benchmark class that is the mother class
+            funcs = [x for x in funcs if x[0] != 'Benchmark']
+            # Select only the functions that are requested if any
+            if self.functions is not None:
+                funcs = [x for x in funcs if x[0] in self.functions]
+        logger.info('Nb functions to process: {}'.format(len(funcs)))
+
+        if 'USE_CLUSTER' in os.environ:
+            start_idx = int(os.environ['SECTION_NUM']) * int(
+                    os.environ['NB_CORES'])
+            end_idx = start_idx + int(os.environ['NB_CORES']) - 1
+            if end_idx > len(funcs):
+                end_idx = len(funcs) - 1
+            funcs = funcs[start_idx:(end_idx+1)]
+            logger.info('Benchmarking functions: {}'.format(
+                [x[0] for x in funcs]))
+        for name, klass, dim in funcs:
+            jobs[index] = Job(name, klass, dim)
+            index += 1
+        while jobs:
+            running = []
+            to_delete = []
+            for index, job in jobs.items():
+                if job.status == 'FINISHED':
+                    to_delete.append(index)
+                elif job.status == 'RUNNING':
+                    running.append(index)
+            if to_delete:
+                for i in to_delete:
+                    del jobs[i]
+            freecores = NB_CORES_AVAILABLES - len(running)
+            if freecores <= NB_CORES_AVAILABLES:
+                non_running = [jobs[
+                    x] for x in jobs.keys() if x not in running]
+                for i in range(freecores):
+                    if i < len(non_running):
+                        non_running[i].start(self.bench)
+            time.sleep(0.5)
+
+    def bench(self, fname, klass, dim=None):
+        '''Benchmarking function. It executes all runs for a specific
+        function
+        '''
+        self._fname = fname
+        if dim:
+            self._fname = '{0}_{1}'.format(self._fname, dim)
+        for algo in self.algorithms:
+            bu = BenchUnit(self.nbruns, self._fname, algo.name)
+            if os.path.exists(os.path.join(self.folder, bu.filename)):
+                logger.info('File {} already existing, skipping...'.format(
+                    bu.filename))
+                continue
+            else:
+                bu.write(self.folder)
+            for i in range(self.nbruns):
+                np.random.seed(1234 + i)
+                algo.prepare(fname, klass, dim)
+                if i > 0 and algo.name == 'BF':
+                    logger.info('BRUTE FORCE nbrun > 1, ignoring...')
+                    if i == 1:
+                        bu.replicate()
+                    continue
+                try:
+                    algo.optimize()
+                    s = (':-(  Func: {0} - Algo: {1} - RUN: {2} '
+                         '-> FAILED after {3} calls').format(
+                             self._fname, algo.name, i, algo.nbcall)
+                    logger.info(s)
+                    bu.update('success', i, algo.success)
+                    bu.update('ncall', i, algo.fcall_success)
+                    bu.update('fvalue', i, algo.fsuccess)
+                    bu.update('time', i, algo.duration)
+                    bu.update('ncall_max', i, algo.nbcall)
+                except Exception as e:
+                    if type(e) == OptimumFoundException:
+                        s = (':-)  Func: {0} - Algo: {1} - RUN: {2} '
+                             '-> FOUND after {3} calls').format(
+                                self._fname, algo.name, i, algo.nbcall)
+                        logger.info(s)
+                        algo._success = True
+                    elif type(e) == OptimumNotFoundException:
+                        if algo._favor_context:
+                            logger.info('Maximum NB CALL reached. LS...')
+                            algo.lsearch()
+                            self._favor_context = False
+                        s = (':-(  Func: {0} - Algo: {1} - RUN: {2} '
+                             '-> FAILED after {3} calls').format(
+                                self._fname, algo.name, i, algo.nbcall)
+                        logger.info(s)
+                    else:
+                        s = (':-(  Func: {0} - Algo: {1} - RUN: {2} '
+                             '-> EXCEPTION RAISED after {3} '
+                             'calls: {4}').format(
+                                 self._fname, algo.name, i, algo.nbcall)
+                        logger.info(s)
+                        algo._success = False
+                    bu.update('success', i, algo.success)
+                    bu.update('ncall', i, algo.fcall_success)
+                    bu.update('fvalue', i, algo.fsuccess)
+                    bu.update('time', i, algo.duration)
+                    bu.update('ncall_max', i, algo.nbcall)
+            bu.write(self.folder)
 
 
 def which_fglob_centered():
