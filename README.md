@@ -6,8 +6,8 @@ Global Optimization benchmark for python
 implemented by Andreas Gavana, Andrew Nelson and scipy contributors and have
 been forked from SciPy project.
 
-Results of the benchmarks of sdaopt (using 3 points for numerical derivatives
-with the local search) available at:
+Previous results of the benchmarks of sdaopt (using 3 points for numerical
+derivatives gradient computation for the local search) available at:
 https://gist.github.com/sgubianpm/7d55f8d3ba5c9de4e9f0f1ffff1aa6cf
 
 Minimum requirements to run the benchmarks is to have scipy installed.
@@ -15,9 +15,11 @@ Other dependencies are managed in the setup.py file.
 Running the benchmark is very CPU intensive and require a multicore machine
 or a cluster infrastructure.
 
-By default, the benchmark includes bassinhopping, differential evolution, brute
-force and dual annealing. Other methods can be used (pyswarm, cmaes, ...).
-Note the nlopt ones require additional installation/compilation.
+By default, the benchmark includes basinhopping, differential evolution, brute
+force, dual annealing (under PR review) from SciPy and pyswarm, cma-es non
+scipy optimizers.
+Note the nlopt optimizers require additional installation/compilation but can
+also be benchmarked.
 
 ## Installation from source
 
