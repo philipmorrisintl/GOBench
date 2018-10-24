@@ -9,8 +9,9 @@ import argparse
 from argparse import RawTextHelpFormatter
 from .bench import Benchmarker
 from .benchstore import process_results
-from .heatmap import heatmap_reliability
-#from .barplot import barplot
+from .plots import heatmap_reliability
+from .plots import barplot
+from .plots import all_func_nb_call
 
 logger = logging.getLogger(__name__)
 
@@ -127,10 +128,10 @@ def report():
         '--type',
         dest='result_type',
         action='store',
-        default='barplot',
+        default='heatmap',
         help='''
-        Type of the plot to be generated. Possible plots are for now:
-        barplot (default), heatmap, csv.
+        Type of report to be generated. Possible reports are for now:
+        heatmap, csv.
         ''')
     args = parser.parse_args()
     results_folder = args.results_folder
@@ -140,10 +141,7 @@ def report():
     if results_folder is None:
         results_folder = DEFAULT_OUTPUT_FOLDER
 
-    if result_type == 'barplot':
-        data = process_results(results_folder, kind='raw')
-        barplot(data, output_file)
-    elif result_type == 'heatmap':
+    if result_type == 'heatmap':
         data = process_results(results_folder, kind='raw')
         heatmap_reliability(data, output_file)
     else:

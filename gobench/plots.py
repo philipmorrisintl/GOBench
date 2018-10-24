@@ -45,12 +45,13 @@ def all_func_nb_call(data):
                 )
         plt.show(k)
 
-def overall_fncall(data):
+def barplot(data, file_path):
+    file_format = os.path.splitext(file_path)[1]
+    if file_format not in ['.svg', '.pdf', '.png', '.eps']:
+        raise ValueError('Invalid file format extention')
     doa = {}
-    reliability = {}
     nb_runs = get_data_info(data)
     for k in data:
-        reliability[k] = []
         doa[k] = []
         for i, f in enumerate(data[k]):
             values = data[k][f]['ncall']
@@ -58,19 +59,18 @@ def overall_fncall(data):
                 data[k][f]['success']) * 100 / nb_runs
             if np.isnan(success):
                 success = 0
-            reliability[k].append(int(success))
             # Normalizing values
             values /= np.max(np.abs(values), axis=0)
             if i == 0:
                 doa[k][:] = values
             else:
                 doa[k] = np.append(doa[k], values)
-        reliability[k] = int(np.round(np.mean(reliability[k])))
     df = pd.DataFrame(doa, columns=data.keys())
-    axes = df.plot.box(notch=True, title='Normalized Overall function calls')
+    #axes = df.plot.box(notch=False, title='Normalized Overall function calls')
+    axes = df.plot.bar(title='Normalized Overall function calls')
     axes.set_ylim([-0.5, 1.1])
     # ax = axes.set_xticklabels(axes.xaxis.get_majorticklabels(), rotation=90)
-    plt.show()
+    plt.savefig(file_path, bbox_inches='tight', format=file_format[1:])
 
 def heatmap_reliability(data, file_path):
     file_format = os.path.splitext(file_path)[1]

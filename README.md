@@ -117,8 +117,8 @@ optional arguments:
         for tabular results)
 
   --type RESULT_TYPE
-        Type of the plot to be generated. Possible plots are for now:
-        barplot (default), heatmap, csv.
+        Type of report to be generated. Possible reports are for now:
+        heatmap, csv.
 ```
 
 
@@ -136,13 +136,7 @@ goreport --type heatmap --out heatmap.png
 ```
 
 will produce a figure looking like below:
-
-### A number of function call barplot
-```bash
-goreport --type barplot --out barplot.png
-```
-
-will produce a figure looking like below:
+![heatmap](images/heatmap.png)
 
 
 ## Running benchmark on a multicore machine
