@@ -39,7 +39,7 @@ In order to run the benchmark only on few functions and few methods (will use
 the cores available on your machine), run the example below:
 
 ```bash
-gobench --nb-runs 5 --methods 'DA,BH' --function 'Ackley01,Rosenbrock,Rastrigin'
+gobench --nb-runs 5 --methods 'BH,DE,DA' --function 'Ackley01,Rosenbrock,Rastrigin'
 ```
 
 ```bash
@@ -90,9 +90,59 @@ optional arguments:
 
 ## How to generate the report
 
+Use the `goreport` tool that generates either csv file, heatmap reliability
+figure of average number of function calls (in pdf, png, svg or eps formats
+depending of provided out file extention).
+
 ```bash
-goreport
+goreport --help
 ```
+
+```
+usage: goreport [-h] [--results-folder RESULTS_FOLDER] [--out OUTPUT_FILEPATH]
+                [--type RESULT_TYPE]
+
+Generate reports with benchmark results
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --results-folder RESULTS_FOLDER
+
+        Folder where data file for optimization results are stored.
+
+  --out OUTPUT_FILEPATH
+
+        Path for the figure file to be generated. The given file extention
+        will set the file format to be generated (pdf, png, svg, eps or csv
+        for tabular results)
+
+  --type RESULT_TYPE
+        Type of the plot to be generated. Possible plots are for now:
+        barplot (default), heatmap, csv.
+```
+
+
+
+### A csv file report
+```bash
+goreport --type csv --out results.csv
+```
+
+will produce a csv file that looks like:
+
+### A reliability heatmap
+```bash
+goreport --type heatmap --out heatmap.png
+```
+
+will produce a figure looking like below:
+
+### A number of function call barplot
+```bash
+goreport --type barplot --out barplot.png
+```
+
+will produce a figure looking like below:
 
 
 ## Running benchmark on a multicore machine
