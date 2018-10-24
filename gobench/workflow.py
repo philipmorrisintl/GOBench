@@ -5,11 +5,12 @@
 import os
 import sys
 import logging
+import argparse
 from argparse import RawTextHelpFormatter
 from .bench import Benchmarker
-from .benchstore import report
-import subprocess
-import argparse
+from .benchstore import process_results
+from .heatmap import heatmap
+from .barplot import barplot
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +83,7 @@ def run_bench():
     args = parser.parse_args()
     nb_runs = args.nb_runs
     output_folder = args.output_folder
-    functions = args.function
+    functions = args.functions
     methods = args.methods
 
     root = logging.getLogger()
@@ -96,3 +97,54 @@ def run_bench():
                     ' number of cores available on your machine...'))
     bm = Benchmarker(nb_runs, output_folder, function, methods)
     bm.run()
+
+def report():
+    parser = argparse.ArgumentParser(
+        description='Generate reports with benchmark results',
+        formatter_class=RawTextHelpFormatter,
+    )
+    parser.add_argument(
+        '--results-folder',
+        dest='results_folder',
+        action='store',
+        default=DEFAULT_OUTPUT_FOLDER,
+        help='''
+        Folder where data file for optimization results are stored.
+        '''
+    )
+    parser.add_argument(
+        '--out',
+        dest='output_filepath',
+        action='store',
+        default=None,
+        help='''
+        Path for the figure file to be generated. The given file extention
+        will set the file format to be generated (pdf, png or csv for tabular
+        results)
+        '''
+    )
+    parser.add_argument(
+        '--type',
+        dest='result_type',
+        action='store',
+        default='barplot',
+        help='''
+        Type of the plot to be generated. Possible plots are for now:
+        barplot (default), heatmap, csv.
+        ''')
+    args = parser.parse_args()
+    results_folder = args.results_folder
+    output_file = args.output_filepath
+    result_type = args.result_type
+
+    if results_folder is None:
+        results_folder = DEFAULT_OUTPUT_FOLDER
+
+    if result_type == 'barplot':
+        data = process_results(results_folder, kind='raw')
+        barplot(data, output_file)
+    elif results == 'heatmap':
+        data = process_results(results_folder, kind='raw')
+        heatmap(data, output_file)
+    else:
+        process_results(results_folder, kind='csv', path=output_file)

@@ -16,9 +16,8 @@ __email__ = "Sylvain.Gubian@pmi.com"
 
 logger = logging.getLogger(__name__)
 
-def report(folder, kind="raw", path=None):
-    """ By default, report creates a CSV file with the benchmark results
-    for each function and method used
+def process_results(folder, kind="raw", path=None):
+    """
     If kind is ``raw`` no file is generated, a dict is returned with
     Method/Function/values
     If kind is ``csv``, a csv file is generated with the results
