@@ -9,8 +9,8 @@ import argparse
 from argparse import RawTextHelpFormatter
 from .bench import Benchmarker
 from .benchstore import process_results
-from .heatmap import heatmap
-from .barplot import barplot
+from .heatmap import heatmap_reliability
+#from .barplot import barplot
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +95,7 @@ def run_bench():
     root.addHandler(ch)
     logger.warning(('The benchmark may take very long time depending on the'
                     ' number of cores available on your machine...'))
-    bm = Benchmarker(nb_runs, output_folder, function, methods)
+    bm = Benchmarker(nb_runs, output_folder, functions, methods)
     bm.run()
 
 def report():
@@ -119,8 +119,8 @@ def report():
         default=None,
         help='''
         Path for the figure file to be generated. The given file extention
-        will set the file format to be generated (pdf, png or csv for tabular
-        results)
+        will set the file format to be generated (pdf, png, svg, eps, or csv
+        for tabular results)
         '''
     )
     parser.add_argument(
@@ -143,8 +143,8 @@ def report():
     if result_type == 'barplot':
         data = process_results(results_folder, kind='raw')
         barplot(data, output_file)
-    elif results == 'heatmap':
+    elif result_type == 'heatmap':
         data = process_results(results_folder, kind='raw')
-        heatmap(data, output_file)
+        heatmap_reliability(data, output_file)
     else:
         process_results(results_folder, kind='csv', path=output_file)
