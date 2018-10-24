@@ -25,7 +25,7 @@ also be benchmarked.
 
 ```bash
 git clone https://github.com/sgubianpm/GOBench.git
-cd gobench
+cd GoBench
 # Activate your appropriate python virtual environment if needed
 python setup.py install
 ```
