@@ -14,6 +14,7 @@ requires = [
     'fastcluster',
     'cma',
     #'nlopt',
+    'pandas',
     ]
 
 setup(
