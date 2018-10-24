@@ -3,23 +3,18 @@
 # Yang Xiang <yang.xiang@pmi.com>
 # Author: Sylvain Gubian, PMP S.A.
 # -*- coding: utf-8 -*-
-
+import os
 import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from .benchstore import BenchStore
 import scipy.cluster.hierarchy as sch
 import fastcluster
 
-def get_data(path):
-    data = BenchStore.report(path, kind='raw')
-    return data
-
 def get_data_info(data, info='nbruns'):
-    methods = data.keys()
-    fnames = data[methods[0]].keys()
-    metrics = data[methods[0]][fnames[0]].keys()
+    methods = list(data.keys())
+    fnames = list(data[methods[0]].keys())
+    metrics = list(data[methods[0]][fnames[0]].keys())
     nbruns = len(data[methods[0]][fnames[0]][metrics[0]])
     if info == 'fnames':
         return fnames
@@ -77,7 +72,10 @@ def overall_fncall(data):
     # ax = axes.set_xticklabels(axes.xaxis.get_majorticklabels(), rotation=90)
     plt.show()
 
-def heat_map_reliability(data):
+def heatmap_reliability(data, file_path):
+    file_format = os.path.splitext(file_path)[1]
+    if file_format not in ['.svg', '.pdf', '.png', '.eps']:
+        raise ValueError('Invalid file format extention')
     nb_runs = get_data_info(data)
     nb_func = len(get_data_info(data, 'fnames'))
     methods = get_data_info(data, 'methods')
@@ -97,8 +95,8 @@ def heat_map_reliability(data):
     ax1.set_xticks([])
     ax1.set_yticks([])
     axmatrix = fig.add_axes([0.1, 0.1, 0.6, 0.8])
-    axmatrix.set_title(
-            'Success rate across test functions (reliability over 200 runs)')
+    axmatrix.set_title(('Success rate across tested  functions '
+                        '(reliability over {} runs)').format(nb_runs))
     im = axmatrix.matshow(
             mat[Z1['leaves'], :], aspect='auto', origin='lower',
             cmap=plt.cm.RdYlGn,
@@ -112,8 +110,7 @@ def heat_map_reliability(data):
     axmatrix.set_ylabel('Test function number')
     axcolor = fig.add_axes([0.9, 0.1, 0.02, 0.8])
     plt.colorbar(im, cax=axcolor)
-    # fig.show()
-    fig.save('heatmap.pdf', bbox_inches='tight', format='pdf')
+    fig.savefig(file_path, bbox_inches='tight', format=file_format[1:])
 
 def main(data_path):
     print('Retrieving data...')
