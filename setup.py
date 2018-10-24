@@ -39,7 +39,7 @@ setup(
             'console_scripts':
             [
                 'gobench=gobench.workflow:run_bench',
-                'goreport=gobench.report:run_report',
+                'goreport=gobench.workflow:report',
             ],
         },
         install_requires=requires,
