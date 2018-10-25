@@ -39,7 +39,8 @@ In order to run the benchmark only on few functions and few methods (will use
 the cores available on your machine), run the example below:
 
 ```bash
-gobench --nb-runs 5 --methods 'BH,DE,DA' --function 'Ackley01,Rosenbrock,Rastrigin'
+# It takes approx 8 minutes on 2 cores.
+gobench --nb-runs 10 --methods 'BH,DE,DA' --function 'Ackley01,Rosenbrock,Rastrigin'
 ```
 
 ```bash
@@ -84,7 +85,8 @@ optional arguments:
         'PSO-R' for particule swarm restart version
         'BF' for for brute force
         'CMA' for Cov. matrix adaptation evolution strategy
-        'CMA-R' for Cov. matrix adaptation evolution strategy restart version
+        'CMA-R' for Cov. matrix adaptation evolution strategy restart version.
+        If not provided, all of these methods are benchmarked.
 ```
 
 
@@ -129,19 +131,18 @@ goreport --type csv --out results.csv
 ```
 
 will produce a csv file that looks like:
-(10 runs)
 
 | Function name | Algorithm | Success rate | Best | Average | Worst |     Std     | fvalue (mean) | Mean time (ms) | Median |
 | ------------- |:---------:|:------------:|:----:|:-------:|:-----:|:-----------:|:-------------:|:--------------:|:------:|
-| Ackley01      | BH        |  40.0 %      | 4447 | 4739.5  | 5032  | (+/-) 292.5 | 1.6E-07       | 171.42         |1000000 |
-| Ackley01      | DA        | 100.0 %      |  174 |  415    |  633  | (+/-) 196.09| 5.6E-07       |  50.26         |    389 |
-| Ackley01      | DE        | 100.0 %      | 1149 | 1281.4  | 1363  | (+/-) 88.88 | 5E-07         | 147.53         |   1336 |
-| Rastrigin     | BH        |  80.0 %      | 5221 | 14215   | 32611 | (+/-) 11171 | 0             | 375.61         | 13738  |
-| Rastrigin     | DA        | 100.0 %      | 55   | 365.4   | 780   | (+/-) 250.4 | 0             | 50.28          | 290    |
-| Rastrigin     | DE        |  60.0 %      | 984  | 987     | 989   | (+/-) 2.16  | 3.6E-07       | 104.87         | 989    |
-| Rosenbrock    | BH        | 100.0 %      | 172  | 225.4   | 286   | (+/-) 43.9  | 0             | 13.95          | 229    |
-| Rosenbrock    | DA        | 100.0 %      | 141  | 229.8   | 288   | (+/-) 48.58 | 0             | 12.25          | 234    |
-| Rosenbrock    | DA        | 100.0 %      | 739  | 1151.4  | 1467  | (+/-) 268.5 | 1.3E-07       | 117.127        | 1074   |
+| Ackley01      | BH        |  30.0 %      | 2220 | 3893    | 5032  | (+/-) 1220.7| 1.6E-07       | 103.61         |1000000 |
+| Ackley01      | DA        | 100.0 %      |  174 |  376.3  |  633  | (+/-) 155.63| 1.3E-07       |  19.13         |    380 |
+| Ackley01      | DE        | 100.0 %      | 1195 | 1308.4  | 1458  | (+/-) 82.74 | 3.3E-07       | 73.85          |   1278 |
+| Rastrigin     | BH        |  90.0 %      | 2467 | 16705   | 49330 | (+/-) 14913 | 0             | 324.25         | 12979  |
+| Rastrigin     | DA        | 100.0 %      | 55   | 294.2   | 780   | (+/-) 203.5 | 0             | 16.42          | 211    |
+| Rastrigin     | DE        |  80.0 %      | 775  | 947.6   | 1150  | (+/-) 128.46| 1.E-07        | 43.76          | 956.5  |
+| Rosenbrock    | BH        | 100.0 %      | 82   | 187.3   | 286   | (+/-) 64.26 | 0             | 3.86           | 176.5  |
+| Rosenbrock    | DA        | 100.0 %      | 141  | 229.8   | 288   | (+/-) 48.58 | 0             | 4.48           | 226.5  |
+| Rosenbrock    | DA        | 100.0 %      | 858  | 1117.9  | 1332  | (+/-) 136.7 | 2.E-07        | 56.75          | 1150   |
 
 
 

@@ -79,7 +79,8 @@ def run_bench():
         'PSO-R' for particule swarm restart version
         'BF' for for brute force
         'CMA' for Cov. matrix adaptation evolution strategy
-        'CMA-R' for Cov. matrix adaptation evolution strategy restart version
+        'CMA-R' for Cov. matrix adaptation evolution strategy restart version.
+        If not provided, all of these methods are benchmarked.
         ''')
     args = parser.parse_args()
     nb_runs = args.nb_runs
