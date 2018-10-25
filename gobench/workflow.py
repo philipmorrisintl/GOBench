@@ -48,8 +48,6 @@ def run_bench():
         help='''
         Folder where data file for optimization results are stored.
         Default will create a DATA folder in the working directory.
-        Note: Using default will make the benchmark running for a long time,
-        better to use a cluster infrastructure.
         '''
     )
     parser.add_argument(
@@ -80,7 +78,8 @@ def run_bench():
         'BF' for for brute force
         'CMA' for Cov. matrix adaptation evolution strategy
         'CMA-R' for Cov. matrix adaptation evolution strategy restart version.
-        If not provided, all of these methods are benchmarked.
+        If not provided, all of these methods are benchmarked, this requires
+        a longer running time.
         ''')
     parser.add_argument(
         '--multidim',
