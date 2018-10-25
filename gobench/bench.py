@@ -40,7 +40,6 @@ else:
 if NB_CORES_AVAILABLES < 1:
     NB_CORES_AVAILABLES = 1
 
-MULTI_DIM = False
 DIMENSIONS = [5]
 DIMENSIONS.extend(range(10, 110, 10))
 
@@ -426,7 +425,8 @@ class MyBounds(object):
 
 
 class Benchmarker(object):
-    def __init__(self, nbruns, folder, functions=None, methods=None):
+    def __init__(self, nbruns, folder, functions=None, methods=None,
+                 multidim=False):
         self.algorithms = []
         for k, v in METHODS_MAP.items():
             if methods is None or k in methods:
@@ -434,6 +434,7 @@ class Benchmarker(object):
         self.nbruns = nbruns
         self.folder = folder
         self.functions = functions
+        self.multidim = multidim
         bench_members = inspect.getmembers(gbf, inspect.isclass)
         self.benchmark_functions = [item for item in bench_members if
                                     issubclass(item[1], gbf.Benchmark)]
@@ -447,7 +448,7 @@ class Benchmarker(object):
                 k = klass()
             except TypeError:
                 k = klass(dimensions=2)
-            if MULTI_DIM:
+            if self.multidim:
                 if k.change_dimensionality and name in N_DIM_FUNC_SELECTION:
                     for dim in DIMENSIONS:
                         logger.info(

@@ -82,11 +82,23 @@ def run_bench():
         'CMA-R' for Cov. matrix adaptation evolution strategy restart version.
         If not provided, all of these methods are benchmarked.
         ''')
+    parser.add_argument(
+        '--multidim',
+        dest='multidim',
+        action='store_true',
+        help='''
+        If this option is given, `Ackley01`, `Exponential`, `Rastrigin`,
+        `Rosenbrock`, `Schwefel01` testing function will be used in the
+        benchmark with dimensions in [5, 10, 20, ..., 100].
+        Note that this will increase running time of the benchmark, however,
+        this shows how optimizers behave with complex high dimension functions.
+        ''')
     args = parser.parse_args()
     nb_runs = args.nb_runs
     output_folder = args.output_folder
     functions = args.functions
     methods = args.methods
+    multidim = args.multidim
 
     root = logging.getLogger()
     root.setLevel(logging.INFO)
@@ -97,7 +109,7 @@ def run_bench():
     root.addHandler(ch)
     logger.warning(('The benchmark may take very long time depending on the'
                     ' number of cores available on your machine...'))
-    bm = Benchmarker(nb_runs, output_folder, functions, methods)
+    bm = Benchmarker(nb_runs, output_folder, functions, methods, multidim)
     bm.run()
 
 def report():

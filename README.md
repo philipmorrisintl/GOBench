@@ -10,6 +10,10 @@ Previous results of the benchmarks of sdaopt (using 3 points for numerical
 derivatives gradient computation for the local search) available at:
 https://gist.github.com/sgubianpm/7d55f8d3ba5c9de4e9f0f1ffff1aa6cf
 
+The current version of the benchmark is not using sdaopt anymore but is
+benchmarking **dual annealing** proposed as a PR in SciPy. You need to have
+this scipy branch in order to use `DA` method.
+
 Minimum requirements to run the benchmarks is to have scipy installed.
 Other dependencies are managed in the setup.py file.
 Running the benchmark is very CPU intensive and requires a multicore machine
@@ -87,6 +91,14 @@ optional arguments:
         'CMA' for Cov. matrix adaptation evolution strategy
         'CMA-R' for Cov. matrix adaptation evolution strategy restart version.
         If not provided, all of these methods are benchmarked.
+
+ --multidim
+        If this option is given, `Ackley01`, `Exponential`, `Rastrigin`,
+        `Rosenbrock`, `Schwefel01` testing function will be used in the
+        benchmark with dimensions in [5, 10, 20, ..., 100].
+        Note that this will increase running time of the benchmark, however,
+        this shows how optimizers behave with complex high dimension functions.
+
 ```
 
 
