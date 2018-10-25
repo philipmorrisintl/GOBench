@@ -69,8 +69,6 @@ optional arguments:
   --output-folder OUTPUT_FOLDER
         Folder where data file for optimization results are stored.
         Default will create a DATA folder in the working directory.
-        Note: Using default will make the benchmark running for a long time,
-        better to use a cluster infrastructure.
 
   --functions FUNCTIONS
 
@@ -90,7 +88,8 @@ optional arguments:
         'BF' for for brute force
         'CMA' for Cov. matrix adaptation evolution strategy
         'CMA-R' for Cov. matrix adaptation evolution strategy restart version.
-        If not provided, all of these methods are benchmarked.
+        If not provided, all of these methods are benchmarked, this requires
+        a longer running time.
 
  --multidim
         If this option is given, `Ackley01`, `Exponential`, `Rastrigin`,
