@@ -300,10 +300,13 @@ class BHOptimizer(Algo):
             niter=MAX_IT,
         )
 
+
 class BHMaxiterOptimizer(Algo):
     def __init__(self):
         Algo.__init__(self)
         self.name = 'BH-MI'
+
+    def optimize(self):
         n = len(self._lower)
         self.ls_maxiter_ratio = 6
         self.ls_maxiter_min = 100
@@ -311,8 +314,6 @@ class BHMaxiterOptimizer(Algo):
         self.ls_maxiter = min(max(n * self.ls_maxiter_ratio,
                                   self.ls_maxiter_min),
                               self.ls_maxiter_max)
-
-    def optimize(self):
         mybounds = MyBounds(self._lower, self._upper)
         basinhopping(
             self._funcwrapped, self._xinit,
