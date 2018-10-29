@@ -304,10 +304,11 @@ class BHMaxiterOptimizer(Algo):
     def __init__(self):
         Algo.__init__(self)
         self.name = 'BH-MI'
+        n = len(self._lower)
         self.ls_maxiter_ratio = 6
         self.ls_maxiter_min = 100
         self.ls_maxiter_max = 1000
-        self.ls_maxiter = min(max(self.ls_maxiter_ratio,
+        self.ls_maxiter = min(max(n * self.ls_maxiter_ratio,
                                   self.ls_maxiter_min),
                               self.ls_maxiter_max)
 
