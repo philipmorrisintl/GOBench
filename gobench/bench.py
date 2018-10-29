@@ -180,6 +180,24 @@ class DAOptimizer(Algo):
             func=self._funcwrapped, x0=None,
             bounds=list(zip(self._lower, self._upper)), maxiter=MAX_IT)
 
+
+class DABFGSOptimizer(Algo):
+    def __init__(self):
+        Algo.__init__(self)
+        self.name = 'DA-BFGS'
+
+    def optimize(self):
+        Algo.optimize(self)
+        opts = {
+            'method': 'BFGS'
+        }
+        dual_annealing(
+            func=self._funcwrapped, x0=None,
+            bounds=list(zip(self._lower, self._upper)), maxiter=MAX_IT,
+            local_search_options=opts,
+        )
+
+
 class PSOptimizer(Algo):
     def __init__(self):
         Algo.__init__(self)
@@ -277,6 +295,49 @@ class BHOptimizer(Algo):
                 'bounds': [
                     x for x in zip(self._lower, self._upper)
                     ]
+                },
+            accept_test=mybounds,
+            niter=MAX_IT,
+        )
+
+class BHMaxiterOptimizer(Algo):
+    def __init__(self):
+        Algo.__init__(self)
+        self.name = 'BH-MI'
+        self.ls_maxiter_ratio = 6
+        self.ls_maxiter_min = 100
+        self.ls_maxiter_max = 1000
+        self.ls_maxiter = min(max(self.ls_maxiter_ratio,
+                                  self.ls_maxiter_min),
+                              self.ls_maxiter_max)
+
+    def optimize(self):
+        mybounds = MyBounds(self._lower, self._upper)
+        basinhopping(
+            self._funcwrapped, self._xinit,
+            minimizer_kwargs={
+                'method': 'L-BFGS-B',
+                'bounds': [
+                    x for x in zip(self._lower, self._upper)
+                    ],
+                'options': {'maxiter': self.ls_maxiter}
+                },
+            accept_test=mybounds,
+            niter=MAX_IT,
+        )
+
+
+class BHBFGSOptimizer(Algo):
+    def __init__(self):
+        Algo.__init__(self)
+        self.name = 'BH-BFGS'
+
+    def optimize(self):
+        mybounds = MyBounds(self._lower, self._upper)
+        basinhopping(
+            self._funcwrapped, self._xinit,
+            minimizer_kwargs={
+                'method': 'BFGS',
                 },
             accept_test=mybounds,
             niter=MAX_IT,
