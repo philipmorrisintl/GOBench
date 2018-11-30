@@ -177,7 +177,7 @@ class DAOptimizer(Algo):
     def optimize(self):
         Algo.optimize(self)
         dual_annealing(
-            func=self._funcwrapped, x0=None,
+            func=self._funcwrapped, x0=self._xinit,
             bounds=list(zip(self._lower, self._upper)), maxiter=MAX_IT)
 
 
@@ -192,7 +192,7 @@ class DABFGSOptimizer(Algo):
             'method': 'BFGS'
         }
         dual_annealing(
-            func=self._funcwrapped, x0=None,
+            func=self._funcwrapped, x0=self._xinit,
             bounds=list(zip(self._lower, self._upper)), maxiter=MAX_IT,
             local_search_options=opts,
         )
