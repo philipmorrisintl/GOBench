@@ -151,13 +151,13 @@ class Algo(object):
                 self._maxcall += LS_MAX_CALL
             raise OptimumNotFoundException('NB MAX CALL reached...')
         if self.recording and self._first_hit:
-            if len(self.values) > 0:
-                if res < self.values[-1]:
-                    self.values.append(res)
+            if len(self._values) > 0:
+                if res < self._values[-1]:
+                    self._values.append(res)
                 else:
-                    self.values.append(self.values[-1])
+                    self._values.append(self._values[-1])
             else:
-                self.values.append(res)
+                self._values.append(res)
         if self._first_hit and res <= self._k.fglob + DEFAULT_TOL:
             self._fcall_success = self._nbcall
             self._fsuccess = res
@@ -287,7 +287,19 @@ class BHOptimizer(Algo):
         self.name = 'BH'
 
     def optimize(self):
-        mybounds = MyBounds(self._lower, self._upper)
+        basinhopping(
+            self._funcwrapped, self._xinit,
+            niter=MAX_IT,
+        )
+
+
+class BHOptimizerBounds(Algo):
+    def __init__(self):
+        Algo.__init__(self)
+        self.name = 'BH-Bounds'
+
+    def optimize(self):
+        mybounds = MyBounds(self._upper, self._lower)
         basinhopping(
             self._funcwrapped, self._xinit,
             minimizer_kwargs={
@@ -314,7 +326,7 @@ class BHMaxiterOptimizer(Algo):
         self.ls_maxiter = min(max(n * self.ls_maxiter_ratio,
                                   self.ls_maxiter_min),
                               self.ls_maxiter_max)
-        mybounds = MyBounds(self._lower, self._upper)
+        mybounds = MyBounds(self._upper, self._lower)
         basinhopping(
             self._funcwrapped, self._xinit,
             minimizer_kwargs={
@@ -335,7 +347,7 @@ class BHBFGSOptimizer(Algo):
         self.name = 'BH-BFGS'
 
     def optimize(self):
-        mybounds = MyBounds(self._lower, self._upper)
+        mybounds = MyBounds(self._upper, self._lower)
         basinhopping(
             self._funcwrapped, self._xinit,
             minimizer_kwargs={
@@ -352,7 +364,7 @@ class BHRestartOptimizer(Algo):
         self.name = 'BH-R'
 
     def optimize(self):
-        mybounds = MyBounds(self._lower, self._upper)
+        mybounds = MyBounds(self._upper, self._lower)
         while(self._nbcall < MAX_FN_CALL):
             basinhopping(
                 self._funcwrapped, self._xinit,
@@ -489,7 +501,7 @@ class MyBounds(object):
 
 class Benchmarker(object):
     def __init__(self, nbruns, folder, functions=None, methods=None,
-                 multidim=False):
+                 multidim=False, dimensions=None):
         self.algorithms = []
         for k, v in METHODS_MAP.items():
             if methods is None or k in methods:
@@ -498,6 +510,12 @@ class Benchmarker(object):
         self.folder = folder
         self.functions = functions
         self.multidim = multidim
+        self.dimensions = dimensions
+        if self.dimensions is not None:
+            self.dimensions = dimensions.split(',')
+            self.dimensions = [int(x) for x in self.dimensions]
+        else:
+            self.dimensions = DIMENSIONS
         bench_members = inspect.getmembers(gbf, inspect.isclass)
         self.benchmark_functions = [item for item in bench_members if
                                     issubclass(item[1], gbf.Benchmark)]
@@ -513,7 +531,7 @@ class Benchmarker(object):
                 k = klass(dimensions=2)
             if self.multidim:
                 if k.change_dimensionality and name in N_DIM_FUNC_SELECTION:
-                    for dim in DIMENSIONS:
+                    for dim in self.dimensions:
                         logger.info(
                             'Appending function: {0} with dim: {1}'.format(
                                 name, dim))

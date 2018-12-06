@@ -88,9 +88,19 @@ def run_bench():
         help='''
         If this option is given, `Ackley01`, `Exponential`, `Rastrigin`,
         `Rosenbrock`, `Schwefel01` testing function will be used in the
-        benchmark with dimensions in [5, 10, 20, ..., 100].
+        benchmark with dimensions in [5, 10, 20, ..., 100] by default.
+        If `--dimensions` is provided, this dimensions will be used.
         Note that this will increase running time of the benchmark, however,
         this shows how optimizers behave with complex high dimension functions.
+        ''')
+    parser.add_argument(
+        '--dimensions',
+        dest='dimensions',
+        action='store',
+        default=None,
+        help='''
+        Dimensions to be used if ``multidim`` argument is used. By default,
+        dimensions 5, 10, 20, ..., 100 are used.
         ''')
     args = parser.parse_args()
     nb_runs = args.nb_runs
@@ -98,6 +108,7 @@ def run_bench():
     functions = args.functions
     methods = args.methods
     multidim = args.multidim
+    dimensions = args.dimensions
 
     root = logging.getLogger()
     root.setLevel(logging.INFO)
@@ -108,7 +119,8 @@ def run_bench():
     root.addHandler(ch)
     logger.warning(('The benchmark may take very long time depending on the'
                     ' number of cores available on your machine...'))
-    bm = Benchmarker(nb_runs, output_folder, functions, methods, multidim)
+    bm = Benchmarker(nb_runs, output_folder, functions, methods, multidim,
+            dimensions)
     bm.run()
 
 def report():
