@@ -40,6 +40,7 @@ setup(
             [
                 'gobench=gobench.workflow:run_bench',
                 'goreport=gobench.workflow:report',
+                'gofuncdim=gobench.bench:get_func_default_dim',
             ],
         },
         install_requires=requires,

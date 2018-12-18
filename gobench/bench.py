@@ -7,7 +7,6 @@ import sys
 import os
 import time
 import logging
-import copy
 import multiprocessing
 import inspect
 import contextlib
@@ -17,13 +16,22 @@ from scipy.optimize import differential_evolution
 from scipy.optimize import brute
 from scipy.optimize import dual_annealing
 from scipy.optimize import minimize
-from pyswarm import pso
 import cma
-# nlop is a bit tricky to install, disabling by default
-#import nlopt
+from pyswarm import pso
 from . import go_benchmark_functions as gbf
 from .benchunit import BenchUnit
 from .job import Job
+
+# NLopt is a bit tricky to install
+# Trying to import if bindings are correctly installed
+USE_NLOPT = True
+try:
+    import nlopt
+except Exception as e:
+    USE_NLOPT = False
+    print("Warning: NLopt module not installed properly, ignoring it")
+
+# import nlopt
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +40,8 @@ MAX_FN_CALL = 1e6
 LS_MAX_CALL = 1e4
 MAX_IT = int(1e6)
 if 'USE_CLUSTER' in os.environ:
-    assert('NB_CORES' in os.environ)
-    assert('SECTION_NUM' in os.environ)
+    assert 'NB_CORES' in os.environ
+    assert 'SECTION_NUM' in os.environ
     NB_CORES_AVAILABLES = int(os.environ['NB_CORES'])
 else:
     NB_CORES_AVAILABLES = multiprocessing.cpu_count()
@@ -47,6 +55,7 @@ N_DIM_FUNC_SELECTION = [
     'Ackley01', 'Exponential', 'Rastrigin', 'Rosenbrock',
     'Schwefel01',
     ]
+
 
 @contextlib.contextmanager
 def nostdout():
@@ -129,7 +138,7 @@ class Algo(object):
         self._lower = np.array([x[0] for x in self._k.bounds])
         self._upper = np.array([x[1] for x in self._k.bounds])
         self._xinit = self._lower + np.random.rand(self._k.N) * (
-                self._upper - self._lower)
+            self._upper - self._lower)
 
     def optimize(self):
         pass
@@ -151,7 +160,7 @@ class Algo(object):
                 self._maxcall += LS_MAX_CALL
             raise OptimumNotFoundException('NB MAX CALL reached...')
         if self.recording and self._first_hit:
-            if len(self._values) > 0:
+            if len(self._values):
                 if res < self._values[-1]:
                     self._values.append(res)
                 else:
@@ -216,7 +225,7 @@ class PSORestartOptimizer(Algo):
         self.name = 'PSO-R'
 
     def optimize(self):
-        while (self._nbcall < MAX_FN_CALL):
+        while self._nbcall < MAX_FN_CALL:
             with nostdout():
                 xopt, fopt = pso(
                     self._funcwrapped, self._lower, self._upper,
@@ -256,7 +265,7 @@ class PSOLSRestartOptimizer(Algo):
 
     def optimize(self):
         self._favor_context = True
-        while (self._nbcall < MAX_FN_CALL):
+        while self._nbcall < MAX_FN_CALL:
             with nostdout():
                 x, v = pso(
                     self._funcwrapped, self._lower, self._upper,
@@ -365,7 +374,7 @@ class BHRestartOptimizer(Algo):
 
     def optimize(self):
         mybounds = MyBounds(self._upper, self._lower)
-        while(self._nbcall < MAX_FN_CALL):
+        while self._nbcall < MAX_FN_CALL:
             basinhopping(
                 self._funcwrapped, self._xinit,
                 minimizer_kwargs={
@@ -396,7 +405,7 @@ class DERestartOptimizer(Algo):
         self.name = 'DE-R'
 
     def optimize(self):
-        while(self._nbcall < MAX_FN_CALL):
+        while self._nbcall < MAX_FN_CALL:
             differential_evolution(
                 self._funcwrapped,
                 [x for x in zip(self._lower, self._upper)],
@@ -430,7 +439,7 @@ class CMAOptimizer(Algo):
             },
         )
         with nostdout():
-            res = self.es.optimize(self._funcwrapped)
+            self.es.optimize(self._funcwrapped)
 
 
 class CMARestartOptimizer(Algo):
@@ -440,7 +449,7 @@ class CMARestartOptimizer(Algo):
         self.es = None
 
     def optimize(self):
-        while(self._nbcall < MAX_FN_CALL):
+        while self._nbcall < MAX_FN_CALL:
             self.es = cma.CMAEvolutionStrategy(
                 self._xinit,
                 0.5,
@@ -450,7 +459,7 @@ class CMARestartOptimizer(Algo):
                 },
             )
             with nostdout():
-                res = self.es.optimize(self._funcwrapped)
+                self.es.optimize(self._funcwrapped)
 
 
 class NLOptimizer(Algo):
@@ -466,7 +475,7 @@ class NLOptimizer(Algo):
         self.opt.set_lower_bounds(self._lower)
         self.opt.set_upper_bounds(self._upper)
         with nostdout():
-            res = self.opt.optimize(self._xinit)
+            self.opt.optimize(self._xinit)
 
 
 METHODS_MAP = {
@@ -477,14 +486,17 @@ METHODS_MAP = {
     'PSO': PSOptimizer(),             # Particule swarm
     'PSO-R': PSOptimizer(),           # Particule swarm restart
     'BF': BFOptimizer(),              # Brute force
-    'CMA': CMAOptimizer(),            # Cov. matrix adaptation evolution strategy
+    'CMA': CMAOptimizer(),            # Cov. matrix adaptation evolution
     'CMA-R': CMARestartOptimizer(),
 }
 
 
 class DummyFile(object):
-    def write(self, x): pass
-    def flush(self): pass
+    def write(self, x):
+        pass
+
+    def flush(self):
+        pass
 
 
 class MyBounds(object):
@@ -547,7 +559,7 @@ class Benchmarker(object):
 
         if 'USE_CLUSTER' in os.environ:
             start_idx = int(os.environ['SECTION_NUM']) * int(
-                    os.environ['NB_CORES'])
+                os.environ['NB_CORES'])
             end_idx = start_idx + int(os.environ['NB_CORES']) - 1
             if end_idx > len(funcs):
                 end_idx = len(funcs) - 1
@@ -614,8 +626,8 @@ class Benchmarker(object):
                 except Exception as e:
                     if type(e) == OptimumFoundException:
                         s = (':-)  Func: {0} - Algo: {1} - RUN: {2} '
-                             '-> FOUND after {3} calls').format(
-                                self._fname, algo.name, i, algo.nbcall)
+                            '-> FOUND after {3} calls').format(
+                            self._fname, algo.name, i, algo.nbcall)
                         logger.info(s)
                         algo._success = True
                     elif type(e) == OptimumNotFoundException:
@@ -624,7 +636,7 @@ class Benchmarker(object):
                             algo.lsearch()
                             self._favor_context = False
                         s = (':-(  Func: {0} - Algo: {1} - RUN: {2} '
-                             '-> FAILED after {3} calls').format(
+                            '-> FAILED after {3} calls').format(
                                 self._fname, algo.name, i, algo.nbcall)
                         logger.info(s)
                     else:
@@ -665,4 +677,20 @@ def which_fglob_centered():
         m = 0.5 * np.add(lower, upper)
         if np.all(m == k.global_optimum):
             funcs.append(name)
+    return funcs
+
+
+def get_func_default_dim():
+    """ Retrieves from scipy benchmark default dimensions used for each
+    testing function
+    """
+    bench_members = inspect.getmembers(gbf, inspect.isclass)
+    benchmark_functions = [item for item in bench_members if
+                           issubclass(item[1], gbf.Benchmark)]
+    funcs = []
+    for name, klass in benchmark_functions:
+        if name == 'Benchmark':
+            continue
+        k = klass()
+        funcs.append((name, len(k.global_optimum[0])))
     return funcs
