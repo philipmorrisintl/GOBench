@@ -9,10 +9,10 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'numpy==1.15.2',
     'scipy==1.2.0',
-    'pyswarm',
+    'pyswarm==0.6',
     'matplotlib',
     'fastcluster',
-    'cma',
+    'cma==2.6.0',
     #'nlopt',
     'pandas',
     ]
