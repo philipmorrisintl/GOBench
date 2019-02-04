@@ -7,8 +7,8 @@ README = open(os.path.join(here, 'README.md')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
-    'numpy',
-    'scipy',
+    'numpy==1.15.2',
+    'scipy==1.2.0',
     'pyswarm',
     'matplotlib',
     'fastcluster',
