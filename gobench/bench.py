@@ -29,7 +29,9 @@ try:
     import nlopt
 except Exception as e:
     USE_NLOPT = False
-    print("Warning: NLopt module not installed properly, ignoring it")
+    print(("Warning: NLopt module not installed properly in your environment."
+           "NLopt will be ignored."))
+    time.sleep(10.0)
 
 # import nlopt
 
