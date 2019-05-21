@@ -190,7 +190,7 @@ Below a script content example for Maob/TORQUE:
 # Replace OUTPUT_FOLDER by your the path of your choice
 # Adjust YOUR_PYTHON_VIRTUAL_ENV and YOUR_SDAOPT_GIT_FOLDER
 ##### These lines are for Moab
-#MSUB -l nodes=16:ppn=1
+#MSUB -l nodes=1:ppn=16
 #MSUB -q YOUR_QUEUE_NAME_FOR_LONG_JOBS
 #MSUB -o OUTPUT_FOLDER/bench.out
 #MSUB -e OUTPUT_FOLDER/bench.err
