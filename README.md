@@ -32,7 +32,7 @@ also be benchmarked.
 
 ```bash
 git clone https://github.com/sgubianpm/GOBench.git
-cd GoBench
+cd GOBench
 # Activate your appropriate python virtual environment if needed
 python setup.py install
 ```
