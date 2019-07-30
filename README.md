@@ -141,30 +141,10 @@ optional arguments:
 goreport --type csv --out results.csv
 ```
 
-will produce a csv file that looks like:
-
-| Function name | Algorithm | Success rate | Best | Average | Worst |     Std     | fvalue (mean) | Mean time (ms) | Median |
-| ------------- |:---------:|:------------:|:----:|:-------:|:-----:|:-----------:|:-------------:|:--------------:|:------:|
-| Ackley01      | BH        |  30.0 %      | 2220 | 3893    | 5032  | (+/-) 1220.7| 1.6E-07       | 103.61         |1000000 |
-| Ackley01      | DA        | 100.0 %      |  174 |  376.3  |  633  | (+/-) 155.63| 1.3E-07       |  19.13         |    380 |
-| Ackley01      | DE        | 100.0 %      | 1195 | 1308.4  | 1458  | (+/-) 82.74 | 3.3E-07       | 73.85          |   1278 |
-| Rastrigin     | BH        |  90.0 %      | 2467 | 16705   | 49330 | (+/-) 14913 | 0             | 324.25         | 12979  |
-| Rastrigin     | DA        | 100.0 %      | 55   | 294.2   | 780   | (+/-) 203.5 | 0             | 16.42          | 211    |
-| Rastrigin     | DE        |  80.0 %      | 775  | 947.6   | 1150  | (+/-) 128.46| 1.E-07        | 43.76          | 956.5  |
-| Rosenbrock    | BH        | 100.0 %      | 82   | 187.3   | 286   | (+/-) 64.26 | 0             | 3.86           | 176.5  |
-| Rosenbrock    | DA        | 100.0 %      | 141  | 229.8   | 288   | (+/-) 48.58 | 0             | 4.48           | 226.5  |
-| Rosenbrock    | DA        | 100.0 %      | 858  | 1117.9  | 1332  | (+/-) 136.7 | 2.E-07        | 56.75          | 1150   |
-
-
-
 ### A reliability heatmap
 ```bash
 goreport --type heatmap --out heatmap.png
 ```
-
-will produce a figure looking like below:
-![heatmap](images/heatmap.png)
-
 
 ## Running benchmark on a multicore machine
 
