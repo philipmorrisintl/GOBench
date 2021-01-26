@@ -78,7 +78,7 @@ class ZeroSum(Benchmark):
 
         self._bounds = list(zip([-10.0] * self.N, [10.0] * self.N))
 
-        self.global_optimum = [[]]
+        self.global_optimum = [[0.0, 0.0]]
         self.fglob = 0.0
         self.change_dimensionality = True
 
