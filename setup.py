@@ -8,7 +8,7 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
     'numpy==1.22.0',
-    'scipy==1.3.0',
+    'scipy==1.10.0',
     'pyswarm==0.6',
     'matplotlib',
     'fastcluster',
